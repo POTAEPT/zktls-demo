@@ -23,8 +23,8 @@ export const QRCodeView = ({ url, isLoading, onManualRefresh }: QRCodeProps) => 
 
       {/* ถ้ามี URL ให้แสดง QR Code */}
       {!isLoading && url && (
-         <div style={{ background: 'white', padding: '10px' }}>
-            <QRCode value={url} size={200} />
+         <div style={{ padding: '10px' }}>
+            <QRCode value={url} size={200} bgColor="transparent" />
          </div>
       )}
 
