@@ -2,15 +2,12 @@ import React from 'react';
 import { type EmergencyRequest } from '../App';
 import { ArrowLeft, MapPin, Clock, AlertCircle, Wallet } from 'lucide-react';
 import styles from '../styles/DonationDetail.module.css';
-
-// 1. เพิ่ม Import สำหรับแผนที่ (Leaflet)
-import { MapContainer as LeafletMap, TileLayer, Marker } from 'react-leaflet';
-import 'leaflet/dist/leaflet.css';
-import L from 'leaflet';
-import mapStyles from '../styles/MapContainer.module.css'; // เรียกใช้ Style ของ Pin จากไฟล์ MapContainer
+import { 
+  ChevronLeft, MapPin, Clock, AlertTriangle, 
+  Droplets, Utensils, Stethoscope, Zap, HeartHandshake 
+} from 'lucide-react';
 
 interface DonationDetailViewProps {
-  request: EmergencyRequest;
   onBack: () => void;
 }
 
@@ -37,8 +34,15 @@ export const DonationDetailView: React.FC<DonationDetailViewProps> = ({ request,
     alert('Wallet connection would be initiated here. In production, this would integrate with Web3 wallet providers.');
   };
 
-  // พิกัดของเคสปัจจุบัน
-  const position: [number, number] = [request.location.lat, request.location.lng];
+  const getNeedIcon = (need: string) => {
+    switch (need.toLowerCase()) {
+      case 'water': return <Droplets size={20} color="#3B82F6" />;
+      case 'food': return <Utensils size={20} color="#F59E0B" />;
+      case 'first aid': return <Stethoscope size={20} color="#EF4444" />;
+      case 'generator': return <Zap size={20} color="#EAB308" />;
+      default: return <AlertTriangle size={20} color="#6B7280" />;
+    }
+  };
 
   return (
     <div className={styles.detailView}>
@@ -78,6 +82,7 @@ export const DonationDetailView: React.FC<DonationDetailViewProps> = ({ request,
             />
           </LeafletMap>
         </div>
+      </div>
 
         {/* Request Card */}
         <div className={styles.requestCard}>
@@ -161,6 +166,7 @@ export const DonationDetailView: React.FC<DonationDetailViewProps> = ({ request,
           </p>
         </div>
       </div>
+
     </div>
   );
 };
