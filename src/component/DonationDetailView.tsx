@@ -5,10 +5,33 @@ import { ArrowLeft, MapPin, Clock, AlertCircle, Wallet, Loader2, CheckCircle, Ex
 import { ethers } from 'ethers'; // พระเอกของเรา
 import styles from '../styles/DonationDetail.module.css';
 
+// 1. เพิ่ม Import สำหรับแผนที่ (Leaflet)
+import { MapContainer as LeafletMap, TileLayer, Marker } from 'react-leaflet';
+import 'leaflet/dist/leaflet.css';
+import L from 'leaflet';
+import mapStyles from '../styles/MapContainer.module.css'; // เรียกใช้ Style ของ Pin จากไฟล์ MapContainer
+
 interface DonationDetailViewProps {
   request: EmergencyRequest;
   onBack: () => void;
 }
+
+// 2. ฟังก์ชันสร้าง Icon (Custom Pin)
+const createCustomIcon = () => {
+  return new L.DivIcon({
+    className: '', 
+    html: `
+      <div class="${mapStyles.pin}">
+        <div class="${mapStyles.pinIcon}">
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+        </div>
+        <div class="${mapStyles.pinPulse}"></div>
+      </div>
+    `,
+    iconSize: [48, 48],
+    iconAnchor: [24, 24], 
+  });
+};
 
 export const DonationDetailView: React.FC<DonationDetailViewProps> = ({ request, onBack }) => {
   const [status, setStatus] = useState<'idle' | 'processing' | 'success' | 'error'>('idle');
@@ -57,6 +80,9 @@ export const DonationDetailView: React.FC<DonationDetailViewProps> = ({ request,
       }
     }
   };
+
+  // พิกัดของเคสปัจจุบัน
+  const position: [number, number] = [request.location.lat, request.location.lng];
 
   return (
     <div className={styles.detailView}>
