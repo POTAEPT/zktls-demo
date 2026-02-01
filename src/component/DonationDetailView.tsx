@@ -1,15 +1,16 @@
-import React, { useState } from 'react'; // <--- เพิ่ม useState
+import React, { useState } from 'react';
 import { type EmergencyRequest } from '../App';
 import { ArrowLeft, MapPin, Clock, AlertCircle, Wallet, CheckCircle } from 'lucide-react';
 import styles from '../styles/DonationDetail.module.css';
 
-// 1. เพิ่ม Import สำหรับแผนที่ (Leaflet)
+// Import แผนที่
 import { MapContainer as LeafletMap, TileLayer, Marker } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
-import mapStyles from '../styles/MapContainer.module.css'; // เรียกใช้ Style ของ Pin จากไฟล์ MapContainer
+import mapStyles from '../styles/MapContainer.module.css';
 
 interface DonationDetailViewProps {
+  request: EmergencyRequest; // ✅ เพิ่มบรรทัดนี้แล้ว (แก้ Error: Property 'request' does not exist)
   onBack: () => void;
 }
 
@@ -31,13 +32,61 @@ const createCustomIcon = () => {
 };
 
 export const DonationDetailView: React.FC<DonationDetailViewProps> = ({ request, onBack }) => {
-  const handleConnectWallet = () => {
-    console.log('Connect wallet initiated');
-    alert('Wallet connection would be initiated here. In production, this would integrate with Web3 wallet providers.');
-  };
+  // ✅ ประกาศตัวแปร State ที่หายไป
+  const [walletAddress, setWalletAddress] = useState<string | null>(null);
+  const [status, setStatus] = useState<'idle' | 'connecting' | 'donating' | 'success'>('idle');
+  const [txHash, setTxHash] = useState<string>('');
 
-  // พิกัดของเคสปัจจุบัน
   const position: [number, number] = [request.location.lat, request.location.lng];
+
+  // ✅ ฟังก์ชัน handleAction (สำหรับปุ่ม Connect/Donate)
+  const handleAction = async () => {
+    const ethereum = (window as any).ethereum;
+
+    if (!ethereum) {
+      alert("ไม่พบ MetaMask! กรุณาติดตั้ง Extension หรือใช้ Browser ที่รองรับ Web3");
+      return;
+    }
+
+    // 1. ถ้ายังไม่ต่อกระเป๋า -> สั่ง Connect
+    if (!walletAddress) {
+      try {
+        setStatus('connecting');
+        const accounts = await ethereum.request({ method: 'eth_requestAccounts' });
+        setWalletAddress(accounts[0]);
+        setStatus('idle');
+      } catch (error) {
+        console.error("User rejected connection", error);
+        setStatus('idle');
+      }
+    } 
+    // 2. ถ้าต่อแล้ว -> สั่งโอนเงิน
+    else {
+      try {
+        setStatus('donating');
+        const amountInWei = '0x38D7EA4C68000'; // 0.001 ETH
+        
+        const tx = await ethereum.request({
+          method: 'eth_sendTransaction',
+          params: [
+            {
+              from: walletAddress,
+              to: '0x71C7656EC7ab88b098defB751B7401B5f6d8976F', // Mock Address
+              value: amountInWei, 
+            },
+          ],
+        });
+
+        console.log('Tx Hash:', tx);
+        setTxHash(tx);
+        setStatus('success');
+      } catch (error) {
+        console.error("Donation failed", error);
+        alert("การบริจาคล้มเหลว");
+        setStatus('idle');
+      }
+    }
+  };
 
   return (
     <div className={styles.detailView}>
@@ -67,7 +116,6 @@ export const DonationDetailView: React.FC<DonationDetailViewProps> = ({ request,
             <Marker position={position} icon={createCustomIcon()} />
           </LeafletMap>
         </div>
-      </div>
 
         {/* Info Card */}
         <div className={styles.requestCard}>
@@ -121,13 +169,15 @@ export const DonationDetailView: React.FC<DonationDetailViewProps> = ({ request,
           </div>
         </div>
 
-        {/* Action Section: ปุ่มเปลี่ยนตามสถานะ */}
+        {/* Action Section */}
         <div className={styles.actionSection}>
           {status === 'success' ? (
-            <div style={{ textAlign: 'center', color: 'green', padding: '10px' }}>
+            <div style={{ textAlign: 'center', color: '#059669', padding: '10px' }}>
               <CheckCircle size={48} style={{ margin: '0 auto 10px' }} />
-              <h3>Donation Successful!</h3>
-              <p>Tx Hash: {txHash.slice(0, 6)}...{txHash.slice(-4)}</p>
+              <h3 style={{ margin: 0 }}>Donation Successful!</h3>
+              <p style={{ fontSize: '0.8rem', opacity: 0.8 }}>
+                Tx: {txHash.slice(0, 6)}...{txHash.slice(-4)}
+              </p>
             </div>
           ) : (
             <button 
@@ -135,7 +185,11 @@ export const DonationDetailView: React.FC<DonationDetailViewProps> = ({ request,
               onClick={handleAction}
               disabled={status === 'connecting' || status === 'donating'}
               style={{
-                backgroundColor: walletAddress ? '#10B981' : '#DC2626', // เขียวถ้าต่อแล้ว, แดงถ้ายัง
+                backgroundColor: walletAddress ? '#10B981' : '#DC2626',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '8px'
               }}
             >
               <Wallet size={22} color="#FFFFFF" />
@@ -150,11 +204,10 @@ export const DonationDetailView: React.FC<DonationDetailViewProps> = ({ request,
           <p className={styles.actionNote}>
             {walletAddress 
               ? `Connected: ${walletAddress.slice(0, 6)}...${walletAddress.slice(-4)}`
-              : "Your donation will be sent directly to help this emergency request"}
+              : "Direct blockchain transfer (No Platform Fees)"}
           </p>
         </div>
       </div>
-
     </div>
   );
 };
