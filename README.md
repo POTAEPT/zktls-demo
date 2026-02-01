@@ -1,73 +1,47 @@
-# React + TypeScript + Vite
+# 🚨 ReliefMesh: Decentralized Disaster Response Platform
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+> **"Unstoppable Aid for an Unpredictable World"**
+>
+> 🏆 **Submission for Hackathon 2026**
+>
+> TRACK 2: Digital Economy | TRACK 3: Digital Resilience
 
-Currently, two official plugins are available:
+![ReliefMesh Banner](https://via.placeholder.com/1200x400?text=ReliefMesh+Dashboard+Preview)
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+## 💡 Inspiration
+In the wake of natural disasters, communication infrastructure often fails. Centralized servers go down, and traditional banking systems become inaccessible. **ReliefMesh** was born to answer one critical question: **"How can we coordinate rescue and funding when the internet is broken?"**
 
-## React Compiler
+## 🚀 What is ReliefMesh?
+ReliefMesh is an **offline-first, peer-to-peer (P2P) disaster management platform**. It allows victims to broadcast SOS signals that hop between devices without needing a central server. Simultaneously, it integrates **Ethereum Smart Contracts** to enable direct, transparent, and fee-free financial aid from donors to victims.
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+## ✨ Key Features
+* **📡 Unstoppable P2P Mesh:** Powered by **Gun.js**, allowing devices to sync emergency data directly.
+* **💸 Direct Crypto Aid:** Donations via **MetaMask** on **Sepolia Testnet** (Zero fees, Instant transfer).
+* **🗺️ Live Command Center:** Real-time map visualization of SOS clusters.
+* **📱 Cross-Device Sync:** Works seamlessly between Mobile and Desktop via Relay.
 
-## Expanding the ESLint configuration
+---
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+## 🛠️ Tech Stack
+* **Frontend:** React 18, TypeScript, Vite, Tailwind CSS
+* **P2P Database:** Gun.js
+* **Blockchain:** Ethers.js, Sepolia Testnet
+* **Maps:** Leaflet, OpenStreetMap
+* **Tunneling:** Ngrok (For public demo)
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+---
 
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
+## 🚀 Getting Started (Run the Demo)
 
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
+To see the full capabilities (P2P Sync & Cross-device), please follow these steps:
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+### Prerequisites
+* Node.js (v18+)
+* MetaMask Extension (Browser or Mobile)
+* Ngrok Account (Free tier is fine)
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
-
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
+### Step 1: Clone & Install
+```bash
+git clone [https://github.com/your-username/relief-mesh.git](https://github.com/your-username/relief-mesh.git)
+cd relief-mesh
+npm install
