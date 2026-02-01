@@ -1,11 +1,51 @@
-import { GitHubVerifierLogic } from './component/vertifyLogic'
+import React, { useState } from 'react';
+import { DashboardView } from './components/DashboardView';
+import { DonationDetailView } from './components/DonationDetailView';
+import styles from './styles/App.module.css';
 
-function App() {
-  return (
-    <div>
-      <GitHubVerifierLogic />
-    </div>
-  )
+export interface EmergencyRequest {
+  id: string;
+  userName: string;
+  userAvatar: string;
+  needs: string[];
+  proximity: string;
+  location: {
+    lat: number;
+    lng: number;
+    address: string;
+  };
+  timestamp: string;
+  description: string;
+  urgencyLevel: 'critical' | 'high' | 'medium';
 }
 
-export default App
+function App() {
+  const [currentView, setCurrentView] = useState<'dashboard' | 'detail'>('dashboard');
+  const [selectedRequest, setSelectedRequest] = useState<EmergencyRequest | null>(null);
+
+  const handleViewRequest = (request: EmergencyRequest) => {
+    setSelectedRequest(request);
+    setCurrentView('detail');
+  };
+
+  const handleBackToDashboard = () => {
+    setCurrentView('dashboard');
+    setSelectedRequest(null);
+  };
+
+  return (
+    <div className={styles.app}>
+      {currentView === 'dashboard' && (
+        <DashboardView onViewRequest={handleViewRequest} />
+      )}
+      {currentView === 'detail' && selectedRequest && (
+        <DonationDetailView 
+          request={selectedRequest} 
+          onBack={handleBackToDashboard}
+        />
+      )}
+    </div>
+  );
+}
+
+export default App;
