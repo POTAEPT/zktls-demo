@@ -2,10 +2,9 @@ import { useState, useEffect } from 'react';
 import Gun from 'gun';
 import { type EmergencyRequest } from '../App';
 
-// 👇 แก้ไข Peer: ชี้ไปที่ ngrok ของเราเอง
 const gun = Gun({
   peers: [
-    // ใส่ลิงก์ ngrok ของคุณที่นี่
+    // Link ngrok here 
     'https://refractional-drumly-ernestina.ngrok-free.dev/gun' 
   ]
 });
@@ -14,7 +13,6 @@ export const useRelief = () => {
   const [sosList, setSosList] = useState<EmergencyRequest[]>([]);
 
   useEffect(() => {
-    // READ: ฟังข้อมูลจาก Gun Node
     const channel = gun.get('relief-mesh-hackathon-v1');
     
     channel.map().on((data, id) => {
@@ -46,7 +44,6 @@ export const useRelief = () => {
     });
   }, []);
 
-  // ✅ WRITE: ฟังก์ชันส่ง SOS (อันนี้ที่หายไป)
   const sendSOS = (data: { 
     needs: string[], 
     details: string, 
@@ -70,6 +67,5 @@ export const useRelief = () => {
     console.log("✅ SOS Broadcasted via Local Relay:", payload);
   };
 
-  // ✅ RETURN: ต้องมีบรรทัดนี้ ไม่งั้น Dashboard จะพัง (อันนี้ก็หายไป)
   return { sosList, sendSOS };
 };
