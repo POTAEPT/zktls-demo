@@ -1,4 +1,6 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React from 'react';
+import { type EmergencyRequest } from '../App';
+import { ArrowLeft, MapPin, Clock, AlertCircle, Wallet } from 'lucide-react';
 import styles from '../styles/DonationDetail.module.css';
 import { 
   ChevronLeft, MapPin, Clock, AlertTriangle, 
@@ -9,66 +11,27 @@ interface DonationDetailViewProps {
   onBack: () => void;
 }
 
-export const DonationDetailView: React.FC<DonationDetailViewProps> = ({ onBack }) => {
-  
-  // --- 1. ระบบ Drag Logic (เอาใส่กลับมาแล้วครับ) ---
-  const [panelHeight, setPanelHeight] = useState(450); // ความสูงเริ่มต้น
-  const isDragging = useRef(false);
-  const startY = useRef(0);
-  const startHeight = useRef(0);
+// 2. ฟังก์ชันสร้าง Icon (Custom Pin)
+const createCustomIcon = () => {
+  return new L.DivIcon({
+    className: '', 
+    html: `
+      <div class="${mapStyles.pin}">
+        <div class="${mapStyles.pinIcon}">
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+        </div>
+        <div class="${mapStyles.pinPulse}"></div>
+      </div>
+    `,
+    iconSize: [48, 48],
+    iconAnchor: [24, 24], 
+  });
+};
 
-  const handleDragStart = (clientY: number) => {
-    isDragging.current = true;
-    startY.current = clientY;
-    startHeight.current = panelHeight;
-    document.body.style.cursor = 'grabbing';
-  };
-
-  useEffect(() => {
-    const handleMove = (clientY: number) => {
-      if (!isDragging.current) return;
-      const delta = startY.current - clientY; // ลากขึ้น = บวก
-      const newHeight = startHeight.current + delta;
-      
-      // ลิมิตความสูง: ต่ำสุด 200px, สูงสุด 90% ของหน้าจอ
-      if (newHeight > 200 && newHeight < window.innerHeight * 0.95) {
-        setPanelHeight(newHeight);
-      }
-    };
-
-    const handleEnd = () => {
-      isDragging.current = false;
-      document.body.style.cursor = 'default';
-    };
-
-    // Events
-    const onMouseMove = (e: MouseEvent) => handleMove(e.clientY);
-    const onMouseUp = () => handleEnd();
-    const onTouchMove = (e: TouchEvent) => handleMove(e.touches[0].clientY);
-    const onTouchEnd = () => handleEnd();
-
-    window.addEventListener('mousemove', onMouseMove);
-    window.addEventListener('mouseup', onMouseUp);
-    window.addEventListener('touchmove', onTouchMove);
-    window.addEventListener('touchend', onTouchEnd);
-
-    return () => {
-      window.removeEventListener('mousemove', onMouseMove);
-      window.removeEventListener('mouseup', onMouseUp);
-      window.removeEventListener('touchmove', onTouchMove);
-      window.removeEventListener('touchend', onTouchEnd);
-    };
-  }, []);
-
-  // Mock Data
-  const request = {
-    userName: 'Sarah Johnson',
-    time: '5 min ago',
-    distance: '0.3 km away',
-    description: 'Trapped on second floor with family of 4. Water rising quickly. Need immediate evacuation and supplies.',
-    address: '123 Main St, Los Angeles, CA',
-    coords: '34.0522° N, 118.2437° W',
-    needs: ['Water', 'Food', 'First Aid', 'Generator']
+export const DonationDetailView: React.FC<DonationDetailViewProps> = ({ request, onBack }) => {
+  const handleConnectWallet = () => {
+    console.log('Connect wallet initiated');
+    alert('Wallet connection would be initiated here. In production, this would integrate with Web3 wallet providers.');
   };
 
   const getNeedIcon = (need: string) => {
@@ -83,91 +46,124 @@ export const DonationDetailView: React.FC<DonationDetailViewProps> = ({ onBack }
 
   return (
     <div className={styles.detailView}>
-      
-      {/* --- ส่วน Header & Background Map (อยู่ด้านหลัง ตรึงไว้) --- */}
-      <div className={styles.fixedBackground}>
-        <header className={styles.header}>
-          <button className={styles.backButton} onClick={onBack}>
-            <ChevronLeft size={24} color="#374151" />
-          </button>
-          <h1 className={styles.headerTitle}>Request Details</h1>
-          <div className={styles.headerSpacer}></div>
-        </header>
+      {/* Header */}
+      <header className={styles.header}>
+        <button 
+          className={styles.backButton}
+          onClick={onBack}
+          aria-label="Go back"
+        >
+          <ArrowLeft size={24} color="#1F2937" />
+        </button>
+        <h1 className={styles.headerTitle}>Request Details</h1>
+        <div className={styles.headerSpacer}></div>
+      </header>
 
-        {/* พื้นหลังสีม่วง (Map Placeholder) */}
-        <div className={styles.mapSnippet}>
-          <div className={styles.mapPlaceholder}>
-             <MapPin size={48} color="white" fill="rgba(255,255,255,0.2)" />
-             <span className={styles.mapLabel}>Incident Location</span>
-          </div>
+      {/* Content Container */}
+      <div className={styles.contentContainer}>
+        
+        {/* 3. ส่วนแผนที่ (แก้จากกล่องสีม่วงเดิม เป็นแผนที่จริง) */}
+        <div className={styles.mapSnippet} style={{ background: '#E5E7EB' }}>
+          <LeafletMap 
+            center={position} 
+            zoom={15} 
+            style={{ height: '100%', width: '100%', zIndex: 0 }}
+            zoomControl={false}
+            scrollWheelZoom={false} // ปิดการเลื่อนเมาส์เพื่อซูม (กัน user รำคาญเวลาเลื่อนหน้าจอ)
+            dragging={true}
+          >
+            <TileLayer
+              attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+              url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+            />
+            <Marker 
+              position={position} 
+              icon={createCustomIcon()}
+            />
+          </LeafletMap>
         </div>
       </div>
 
-      {/* --- ส่วน Bottom Sheet ที่ลากได้ (Draggable Area) --- */}
-      <div 
-        className={styles.draggableSheet} 
-        style={{ height: `${panelHeight}px` }} // ควบคุมความสูงตรงนี้
-      >
-        {/* ตัวจับลาก (Handle) */}
-        <div 
-          className={styles.handleArea}
-          onMouseDown={(e) => handleDragStart(e.clientY)}
-          onTouchStart={(e) => handleDragStart(e.touches[0].clientY)}
-        >
-          <div className={styles.handleBar}></div>
-        </div>
-
-        {/* เนื้อหาข้างใน (Scroll ได้) */}
-        <div className={styles.scrollContent}>
-          
+        {/* Request Card */}
+        <div className={styles.requestCard}>
           {/* User Section */}
           <div className={styles.userSection}>
-            <img src="https://i.pravatar.cc/150?img=5" alt="User" className={styles.userAvatar} />
+            <img 
+              src={request.userAvatar} 
+              alt={request.userName}
+              className={styles.userAvatar}
+            />
             <div className={styles.userDetails}>
               <h2 className={styles.userName}>{request.userName}</h2>
               <div className={styles.userMeta}>
-                <span className={styles.metaItem}><Clock size={14} /> {request.time}</span>
-                <span className={styles.metaItem}><MapPin size={14} /> {request.distance}</span>
+                <div className={styles.metaItem}>
+                  <Clock size={16} color="#6B7280" />
+                  <span className={styles.metaText}>{request.timestamp}</span>
+                </div>
+                <div className={styles.metaItem}>
+                  <MapPin size={16} color="#E63946" />
+                  <span className={styles.metaText}>{request.proximity}</span>
+                </div>
               </div>
             </div>
           </div>
 
           {/* Urgency Banner */}
-          <div className={styles.urgencyBanner}>
-            <AlertTriangle size={20} color="white" fill="white" />
-            <span className={styles.urgencyText}>CRITICAL URGENCY</span>
-          </div>
+          {request.urgencyLevel === 'critical' && (
+            <div className={styles.urgencyBanner}>
+              <AlertCircle size={20} color="#000000" />
+              <span className={styles.urgencyText} style={{ color: '#000000' }}>CRITICAL EMERGENCY</span>
+            </div>
+          )}
 
-          {/* Situation */}
+          {/* Description */}
           <div className={styles.section}>
             <h3 className={styles.sectionTitle}>Situation</h3>
             <p className={styles.description}>{request.description}</p>
           </div>
 
-          {/* Needs */}
+          {/* Needs Section */}
           <div className={styles.section}>
-            <h3 className={styles.sectionTitle}>Needed Items</h3>
+            <h3 className={styles.sectionTitle}>Immediate Needs</h3>
             <div className={styles.needsGrid}>
               {request.needs.map((need, index) => (
                 <div key={index} className={styles.needItem}>
-                  <div className={styles.needIcon}>{getNeedIcon(need)}</div>
+                  <div className={styles.needIcon}>
+                    <AlertCircle size={20} color="#E63946" />
+                  </div>
                   <span className={styles.needText}>{need}</span>
                 </div>
               ))}
             </div>
           </div>
-          
-           {/* Space for bottom button */}
-           <div style={{ height: '100px' }}></div>
+
+          {/* Location Details */}
+          <div className={styles.section}>
+            <h3 className={styles.sectionTitle}>Location</h3>
+            <div className={styles.locationCard}>
+              <MapPin size={20} color="#E63946" />
+              <div className={styles.locationInfo}>
+                <span className={styles.locationAddress}>{request.location.address}</span>
+                <span className={styles.locationCoords}>
+                  {request.location.lat.toFixed(4)}, {request.location.lng.toFixed(4)}
+                </span>
+              </div>
+            </div>
+          </div>
         </div>
 
-        {/* Fixed Button at Bottom of Sheet */}
+        {/* Action Section */}
         <div className={styles.actionSection}>
-          <button className={styles.donateButton}>
-            <HeartHandshake size={20} />
-            <span>Donate to Help</span>
+          <button 
+            className={styles.donateButton}
+            onClick={handleConnectWallet}
+          >
+            <Wallet size={22} color="#FFFFFF" />
+            <span>Connect Wallet to Donate</span>
           </button>
-          <p className={styles.actionNote}>Secure P2P transfer via Ethereum Network</p>
+          <p className={styles.actionNote}>
+            Your donation will be sent directly to help this emergency request
+          </p>
         </div>
       </div>
 
