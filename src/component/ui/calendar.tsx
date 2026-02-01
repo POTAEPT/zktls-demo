@@ -59,7 +59,7 @@ function Calendar({
         day_hidden: "invisible",
         ...classNames,
       }}
-     // เปลี่ยนจาก IconLeft/IconRight เป็น Chevron
+     // change IconLeft/IconRight ->> Chevron
       components={{
         Chevron: ({ orientation, className, ...props }) => {
           const Icon = orientation === 'left' ? ChevronLeft : ChevronRight;
