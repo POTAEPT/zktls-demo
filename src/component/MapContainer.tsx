@@ -9,10 +9,9 @@ interface MapContainerProps {
   requests: EmergencyRequest[];
 }
 
-// สร้าง Custom Icon ที่ดึงเอา Class 'pinIcon' และ 'pinPulse' จาก CSS เดิมมาใช้
 const createCustomIcon = () => {
   return new L.DivIcon({
-    className: '', // ลบ default class ออก
+    className: '', 
     html: `
       <div class="${styles.pin}">
         <div class="${styles.pinIcon}">
@@ -22,18 +21,18 @@ const createCustomIcon = () => {
       </div>
     `,
     iconSize: [48, 48],
-    iconAnchor: [24, 24], // ให้จุดศูนย์กลางอยู่ตรงกลาง icon
+    iconAnchor: [24, 24], 
   });
 };
 
 export const MapContainer: React.FC<MapContainerProps> = ({ requests }) => {
-  const centerPosition: [number, number] = [13.7563, 100.5018];
+  const centerPosition: [number, number] = [13.7563, 100.5018]; // Default Center
 
   return (
     <div className={styles.mapContainer}>
       <LeafletMap 
         center={centerPosition} 
-        zoom={13} 
+        zoom={12} 
         style={{ height: '100%', width: '100%' }}
         zoomControl={false}
       >
@@ -45,7 +44,8 @@ export const MapContainer: React.FC<MapContainerProps> = ({ requests }) => {
         {requests.map((request) => (
           <Marker 
             key={request.id} 
-            position={centerPosition} // เปลี่ยนเป็นพิกัดจริงของ request ถ้ามี
+            // แก้ไข: ใช้พิกัดจริงของแต่ละ Request
+            position={[request.location.lat, request.location.lng]} 
             icon={createCustomIcon()}
           />
         ))}
